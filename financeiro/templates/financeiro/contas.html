@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Contas Bancárias - UNIGES - Gestão Única</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-24">
+  <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur sticky top-0 z-30 shadow-2xl">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-lg font-black text-white tracking-wide leading-none">UNIGES - Gestão Única</h1>
+        <span class="text-xs text-slate-400">Configurações de Contas Bancárias / Fontes Pagadoras</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <a href="{% url 'extrato_conta' %}" class="px-4 py-2.5 bg-sky-700/60 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition">
+          📊 Extrato por Conta
+        </a>
+        <a href="{% url 'dashboard_gestor' %}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition">
+          ← Voltar ao Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-3 rounded-xl text-xs font-semibold bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-center shadow">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-emerald-400 mb-4">+ Nova Conta Bancária / Fonte (Exclusivo Master)</h2>
+      <form method="POST" action="{% url 'gerenciar_contas' %}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% csrf_token %}
+        <div class="md:col-span-2">
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Nome / Identificação da Conta *</label>
+          <input type="text" name="nome" required placeholder="Ex: Itaú PJ Matriz, Bradesco Piracicaba, Caixa Físico" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Banco</label>
+          <input type="text" name="banco" placeholder="Ex: Banco Itaú, Bradesco, Santander" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Agência</label>
+          <input type="text" name="agencia" placeholder="Ex: 0123" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Número da Conta</label>
+          <input type="text" name="conta" placeholder="Ex: 12345-6" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="text-xs text-amber-400 font-semibold block mb-1">⚡ Chave Pix da Conta</label>
+          <input type="text" name="chave_pix" placeholder="Ex: CNPJ, E-mail ou Telefone" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div class="md:col-span-3">
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Titular da Conta</label>
+          <input type="text" name="titular" placeholder="Razão Social / Nome Completo" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="md:col-span-3 bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-1">Controle de Permissão de Acesso</label>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2.5 rounded-lg">
+              <input type="checkbox" name="permite_gestores" checked class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-emerald-300">Gestores Master</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2.5 rounded-lg">
+              <input type="checkbox" name="permite_controller" checked class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-sky-300">Controller</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2.5 rounded-lg">
+              <input type="checkbox" name="permite_operador" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-amber-300">Operadores</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2.5 rounded-lg">
+              <input type="checkbox" name="somente_criador" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-rose-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-rose-300">Somente Criador (Dono)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="md:col-span-3 flex justify-end pt-2">
+          <button type="submit" class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition">
+            Cadastrar Conta
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 bg-slate-900/60">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Contas Cadastradas & Permissões</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="text-xs uppercase bg-slate-900 text-slate-400 border-b border-slate-800">
+            <tr>
+              <th class="p-4">Identificação</th>
+              <th class="p-4">Banco / Pix</th>
+              <th class="p-4">Agência / Conta</th>
+              <th class="p-4">Permissões de Uso</th>
+              <th class="p-4 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            {% for c in contas %}
+            <tr class="hover:bg-slate-900/40 transition">
+              <td class="p-4 font-semibold text-white">
+                <div>🏦 {{ c.nome }}</div>
+                {% if c.titular %}<div class="text-[11px] text-slate-400 font-normal">Titular: {{ c.titular }}</div>{% endif %}
+              </td>
+              <td class="p-4">
+                <div class="text-slate-200">{{ c.banco|default:"-" }}</div>
+                {% if c.chave_pix %}<div class="text-[11px] text-amber-300 font-mono">⚡ {{ c.chave_pix }}</div>{% endif %}
+              </td>
+              <td class="p-4 font-mono text-xs">Ag: {{ c.agencia|default:"-" }} / CC: {{ c.conta|default:"-" }}</td>
+              <td class="p-4">
+                <div class="flex items-center space-x-1.5 flex-wrap gap-1">
+                  {% if c.somente_criador %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">Privada (Dono)</span>
+                  {% else %}
+                    {% if c.permite_gestores %}<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Master</span>{% endif %}
+                    {% if c.permite_controller %}<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">Controller</span>{% endif %}
+                    {% if c.permite_operador %}<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">Operador</span>{% endif %}
+                  {% endif %}
+                </div>
+              </td>
+              <td class="p-4 text-center whitespace-nowrap">
+                <div class="flex items-center justify-center space-x-2">
+                  <a href="{% url 'extrato_conta' %}?conta_id={{ c.id }}" class="px-2.5 py-1 rounded bg-sky-950/50 hover:bg-sky-900 border border-sky-800 text-sky-300 text-xs font-semibold transition" title="Ver Extrato Desta Conta">
+                    📊 Extrato
+                  </a>
+                  <button type="button" 
+                          onclick="abrirModalEditarConta('{{ c.id }}', '{{ c.nome|escapejs }}', '{{ c.banco|default:''|escapejs }}', '{{ c.agencia|default:''|escapejs }}', '{{ c.conta|default:''|escapejs }}', '{{ c.titular|default:''|escapejs }}', '{{ c.chave_pix|default:''|escapejs }}', '{{ c.permite_gestores|yesno:'true,false' }}', '{{ c.permite_controller|yesno:'true,false' }}', '{{ c.permite_operador|yesno:'true,false' }}', '{{ c.somente_criador|yesno:'true,false' }}')"
+                          class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition">
+                    ✏ Alterar
+                  </button>
+                  <form method="POST" action="{% url 'deletar_conta_bancaria' c.id %}" onsubmit="return confirm('Deseja realmente excluir a conta {{ c.nome }}?')" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="px-2.5 py-1 bg-rose-950/40 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-semibold rounded-lg transition">
+                      Excluir
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="p-8 text-center text-slate-500">Nenhuma conta bancária cadastrada.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div id="modalEditarConta" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full mr-2"></span>Editar Conta Bancária / Permissões</h3>
+        <button onclick="closeModal('modalEditarConta')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <form id="formEditConta" method="POST" action="" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {% csrf_token %}
+        <div class="md:col-span-2">
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Nome / Identificação *</label>
+          <input type="text" name="nome" id="editNomeConta" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Banco</label>
+          <input type="text" name="banco" id="editBancoConta" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs text-amber-400 font-semibold block mb-1">⚡ Chave Pix</label>
+          <input type="text" name="chave_pix" id="editPixConta" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Agência</label>
+          <input type="text" name="agencia" id="editAgenciaConta" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Número da Conta</label>
+          <input type="text" name="conta" id="editNumeroConta" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs text-slate-400 font-semibold block mb-1">Titular</label>
+          <input type="text" name="titular" id="editTitularConta" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="md:col-span-2 bg-slate-900/60 border border-slate-800 p-3.5 rounded-xl space-y-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-1">Quem pode utilizar esta conta?</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2 rounded-lg">
+              <input type="checkbox" name="permite_gestores" id="editPermiteGestores" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-emerald-300">Gestores Master</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2 rounded-lg">
+              <input type="checkbox" name="permite_controller" id="editPermiteController" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-sky-300">Controller</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2 rounded-lg">
+              <input type="checkbox" name="permite_operador" id="editPermiteOperador" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-amber-300">Operadores</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-950 border border-slate-800 p-2 rounded-lg">
+              <input type="checkbox" name="somente_criador" id="editSomenteCriador" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-rose-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-semibold text-rose-300">Somente Criador (Dono)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="md:col-span-2 pt-2 flex justify-end space-x-2">
+          <button type="button" onclick="closeModal('modalEditarConta')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function abrirModalEditarConta(id, nome, banco, agencia, conta, titular, chavePix, gestores, controller, operador, somenteCriador) {
+      const form = document.getElementById('formEditConta');
+      form.action = '/contas/editar/' + id + '/';
+
+      document.getElementById('editNomeConta').value = nome;
+      document.getElementById('editBancoConta').value = banco;
+      document.getElementById('editAgenciaConta').value = agencia;
+      document.getElementById('editNumeroConta').value = conta;
+      document.getElementById('editTitularConta').value = titular;
+      document.getElementById('editPixConta').value = chavePix || '';
+
+      document.getElementById('editPermiteGestores').checked = (gestores === 'true' || gestores === true);
+      document.getElementById('editPermiteController').checked = (controller === 'true' || controller === true);
+      document.getElementById('editPermiteOperador').checked = (operador === 'true' || operador === true);
+      document.getElementById('editSomenteCriador').checked = (somenteCriador === 'true' || somenteCriador === true);
+
+      openModal('modalEditarConta');
+    }
+  </script>
+</body>
+</html>

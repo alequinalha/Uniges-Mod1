@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tendência - UNIGES V4.7</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-24">
+  <header class="border-b border-slate-800 bg-slate-950/95 backdrop-blur sticky top-0 z-30 shadow-2xl">
+    <div class="max-w-7xl mx-auto px-6 py-3 space-y-2">
+      
+      <!-- Linha Superior: Botões de Ferramentas, Extrato, Tendência e Usuário -->
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center space-x-2 flex-wrap">
+          <a href="{% url 'tendencia' %}?ano={{ ano_atual }}&mes={{ mes_atual }}" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition flex items-center space-x-1 shadow">
+            <span>📈 Tendência</span>
+          </a>
+          {% if not is_operador %}
+            <a href="{% url 'extrato_conta' %}?ano={{ ano_atual }}&mes={{ mes_atual }}" class="px-3 py-1.5 rounded-xl bg-sky-700/60 hover:bg-sky-600 text-xs font-bold text-white transition flex items-center space-x-1 shadow">
+              <span>📊 Extrato</span>
+            </a>
+            <a href="{% url 'exportar_excel' %}?ano={{ ano_atual }}&mes={{ mes_atual }}" class="px-3 py-1.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-600 text-xs font-bold text-white transition flex items-center space-x-1 shadow">
+              <span>↓ Excel</span>
+            </a>
+          {% endif %}
+          
+          {% if is_gestor or is_controller %}
+            <a href="{% url 'exportar_contas_mes' %}?ano={{ ano_atual }}&mes={{ mes_atual }}" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition shadow" title="Backup JSON">
+              <span>💾 Backup</span>
+            </a>
+            <button onclick="openModal('modalImportar')" class="px-3 py-1.5 rounded-xl bg-indigo-700/60 hover:bg-indigo-600 text-xs font-bold text-white transition shadow">
+              <span>📂 Importar</span>
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="text-right">
+            <span class="text-xs font-extrabold text-white block leading-tight">{{ user.username }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider {% if is_gestor %}text-emerald-400{% elif is_controller %}text-sky-400{% else %}text-amber-400{% endif %}">
+              {% if is_gestor %}Master{% elif is_controller %}Controller{% else %}Operador{% endif %}
+            </span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="openModal('modalSenha')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition flex items-center space-x-1 shadow" title="Trocar Senha">
+              <span>🔑</span>
+              <span>Trocar Senha</span>
+            </button>
+            <a href="{% url 'logout' %}" class="px-3 py-1.5 bg-slate-800 hover:bg-rose-900 border border-slate-700 hover:border-rose-700 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition flex items-center space-x-1 shadow" title="Sair">
+              <span>🚪</span>
+              <span>Sair</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha Inferior: Título e Seletor de Período Esticado -->
+      <div class="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-slate-800/80">
+        <div class="flex flex-col justify-center">
+          <h1 class="text-base font-black text-white tracking-wide leading-tight">UNIGES V4.7</h1>
+          <span class="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">Tendência Financeira</span>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-1.5 flex items-center justify-between shadow-inner flex-grow mx-4 max-w-2xl">
+          <span class="text-[11px] uppercase font-bold text-slate-400 tracking-wide">PERÍODO:</span>
+          <div class="flex items-center space-x-3">
+            <a href="?ano={{ ano_ant }}&mes={{ mes_ant }}" class="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs transition">&lt;</a>
+            <span class="text-sm font-black text-white tracking-wide uppercase min-w-[150px] text-center">{{ nome_mes_atual }}</span>
+            <a href="?ano={{ ano_prox }}&mes={{ mes_prox }}" class="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs transition">&gt;</a>
+          </div>
+          <a href="?ano={{ hoje.year }}&mes={{ hoje.month }}" class="px-3 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 transition">Atual</a>
+        </div>
+
+        <div>
+          <a href="{% url 'dashboard_gestor' %}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold shadow transition">
+            ← Voltar ao Dashboard
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- Cards Inferiores (Foto 3) -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-sm">
+        <p class="text-xs uppercase font-semibold text-emerald-400 tracking-wider">Money IN (Receitas Previstas)</p>
+        <h3 class="text-2xl font-bold mt-2 text-white">R$ {{ total_receitas|floatformat:2 }}</h3>
+      </div>
+      <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-sm">
+        <p class="text-xs uppercase font-semibold text-rose-400 tracking-wider">Money OUT (Total Despesas)</p>
+        <h3 class="text-2xl font-bold mt-2 text-white">R$ {{ total_despesas|floatformat:2 }}</h3>
+      </div>
+      <div class="bg-slate-950 p-5 rounded-xl border border-purple-800/60 shadow-sm">
+        <p class="text-xs uppercase font-semibold text-purple-400 tracking-wider">🔄 Custo Fixo Mensal (Projetado)</p>
+        <h3 class="text-2xl font-bold mt-2 text-purple-300">R$ {{ total_custo_fixo|floatformat:2 }}</h3>
+      </div>
+      <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-sm">
+        <p class="text-xs uppercase font-semibold text-sky-400 tracking-wider">Saldo Líquido Projetado</p>
+        <h3 class="text-2xl font-bold mt-2 {% if saldo_projetado >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">
+          R$ {{ saldo_projetado|floatformat:2 }}
+        </h3>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+        <p class="text-xs uppercase font-medium text-amber-400">Pendente</p>
+        <h4 class="text-lg font-bold mt-1 text-white">R$ {{ total_pendente|floatformat:2 }}</h4>
+      </div>
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+        <p class="text-xs uppercase font-medium text-blue-400">Aprovado</p>
+        <h4 class="text-lg font-bold mt-1 text-white">R$ {{ total_aprovado|floatformat:2 }}</h4>
+      </div>
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+        <p class="text-xs uppercase font-medium text-emerald-400">Pago</p>
+        <h4 class="text-lg font-bold mt-1 text-white">R$ {{ total_pago|floatformat:2 }}</h4>
+      </div>
+    </div>
+
+    <!-- Gráficos de Tendência (Esquerda: Faturamento / Direita: Custos) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="border-b border-slate-800 pb-2">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-400">📈 Tendência de Faturamento (Entradas)</h3>
+          <p class="text-[11px] text-slate-400">Histórico dos últimos meses para análise de crescimento.</p>
+        </div>
+        <div class="relative h-72">
+          <canvas id="graficoEntradas"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="border-b border-slate-800 pb-2">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-rose-400">📉 Tendência de Custos (Saídas)</h3>
+          <p class="text-[11px] text-slate-400">Histórico dos últimos meses para análise de variação de despesas.</p>
+        </div>
+        <div class="relative h-72">
+          <canvas id="graficoSaidas"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const dadosTendencia = JSON.parse('{{ tendencia_dados|safe }}');
+    const labels = dadosTendencia.map(item => item.mes_ano);
+    const entradasValores = dadosTendencia.map(item => item.entradas);
+    const saidasValores = dadosTendencia.map(item => item.saidas);
+
+    // Gráfico de Entradas (Faturamento)
+    const ctxIn = document.getElementById('graficoEntradas').getContext('2d');
+    new Chart(ctxIn, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Faturamento (R$)',
+          data: entradasValores,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+          x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+
+    // Gráfico de Saídas (Custos)
+    const ctxOut = document.getElementById('graficoSaidas').getContext('2d');
+    new Chart(ctxOut, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Custos (R$)',
+          data: saidasValores,
+          borderColor: '#f43f5e',
+          backgroundColor: 'rgba(244, 63, 94, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+          x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

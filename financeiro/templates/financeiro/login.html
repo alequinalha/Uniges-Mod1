@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - UNIGES V4.7</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+  <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+    <div class="text-center space-y-3">
+      <div>
+        <h1 class="text-xl font-black text-white tracking-wider uppercase">UNIGES V4.7</h1>
+        <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Gestão Única & Extratos</span>
+      </div>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-3 rounded-xl text-xs font-semibold bg-rose-950/60 border border-rose-800 text-rose-300 text-center">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'login' %}" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-xs text-slate-300 font-bold block mb-1.5">Usuário</label>
+        <input type="text" name="username" required autofocus placeholder="Seu nome de usuário" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition">
+      </div>
+      <div>
+        <label class="text-xs text-slate-300 font-bold block mb-1.5">Senha</label>
+        <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition">
+      </div>
+      <button type="submit" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition duration-200">
+        Entrar
+      </button>
+    </form>
+
+    <div class="border-t border-slate-800 pt-4 text-center">
+      <span class="text-[11px] text-slate-500">UNIGES &bull; Plataforma Financeira Segura</span>
+    </div>
+  </div>
+</body>
+</html>

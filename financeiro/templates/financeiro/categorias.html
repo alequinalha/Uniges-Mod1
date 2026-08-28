@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Categorias - UNIGES - Gestão Única</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-24">
+  <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur sticky top-0 z-30 shadow-2xl">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-lg font-black text-white tracking-wide leading-none">UNIGES - Gestão Única</h1>
+        <span class="text-xs text-slate-400">Configurações de Categorias e Acesso por Unidade</span>
+      </div>
+      <div>
+        <a href="{% url 'dashboard_gestor' %}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition">
+          ← Voltar ao Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-3 rounded-xl text-xs font-semibold bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-center shadow">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-emerald-400 mb-4">+ Nova Categoria</h2>
+      <form method="POST" action="{% url 'gerenciar_categorias' %}" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2">
+            <label class="text-xs text-slate-400 font-semibold block mb-1">Nome da Categoria *</label>
+            <input type="text" name="nome" required placeholder="Ex: Pagamento de Desenvolvedores, Aluguel, Provedor" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-semibold block mb-1">Tipo *</label>
+            <select name="tipo" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+              <option value="OUT">Money OUT (Despesa)</option>
+              <option value="IN">Money IN (Receita)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Disponibilidade nas Unidades</span>
+              <p class="text-[11px] text-slate-400">Selecione para quais empresas / polos esta categoria estará visível nos lançamentos.</p>
+            </div>
+            <label class="flex items-center space-x-2 bg-slate-950 border border-slate-700 px-3 py-1.5 rounded-lg cursor-pointer hover:border-emerald-500 transition">
+              <input type="checkbox" name="disponivel_todas" id="chkDisponivelTodasNova" checked onchange="toggleVisibilidadeUnidadesNova(this)" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-bold text-emerald-400">Disponível para TODAS</span>
+            </label>
+          </div>
+
+          <div id="boxUnidadesNova" class="hidden space-y-3 pt-2">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {% if coluna_uninter %}
+              <div class="bg-slate-950 border border-slate-800/80 p-3 rounded-xl space-y-2">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+                  <span class="text-xs font-bold uppercase text-sky-400">Unidades</span>
+                  <label class="text-[10px] text-slate-400 hover:text-white cursor-pointer select-none">
+                    <input type="checkbox" onchange="toggleGrupoCheckbox(this, 'chk-nova-uninter')" class="w-3 h-3 rounded text-sky-500 cursor-pointer"> Todas
+                  </label>
+                </div>
+                <div class="space-y-1 max-h-48 overflow-y-auto">
+                  {% for u in coluna_uninter %}
+                    <label class="flex items-center space-x-2 text-xs text-slate-300 hover:text-white cursor-pointer">
+                      <input type="checkbox" name="unidades_categoria" value="{{ u.id }}" class="chk-nova-uninter w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-sky-500">
+                      <span>{{ u.nome }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button type="submit" class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition">
+            Cadastrar Categoria
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 bg-slate-900/60">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Categorias Cadastradas no Sistema</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="text-xs uppercase bg-slate-900 text-slate-400 border-b border-slate-800">
+            <tr>
+              <th class="p-4">ID</th>
+              <th class="p-4">Nome</th>
+              <th class="p-4">Tipo</th>
+              <th class="p-4">Unidades Permitidas</th>
+              <th class="p-4 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            {% for cat in categorias %}
+            <tr class="hover:bg-slate-900/40 transition">
+              <td class="p-4 font-mono text-xs text-slate-500">#{{ cat.id }}</td>
+              <td class="p-4 font-semibold text-white">{{ cat.nome }}</td>
+              <td class="p-4">
+                {% if cat.tipo == 'OUT' %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">Money OUT (Despesa)</span>
+                {% else %}
+                  <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Money IN (Receita)</span>
+                {% endif %}
+              </td>
+              <td class="p-4 text-xs">
+                {% if cat.disponivel_todas %}
+                  <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">🌐 Global (Todas as Unidades)</span>
+                {% else %}
+                  <div class="flex flex-wrap gap-1">
+                    {% for u in cat.unidades.all %}
+                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 border border-slate-700 text-slate-200">{{ u.nome }}</span>
+                    {% empty %}
+                      <span class="text-rose-400 italic text-[11px]">Nenhuma unidade vinculada</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </td>
+              <td class="p-4 text-center whitespace-nowrap">
+                <div class="flex items-center justify-center space-x-2">
+                  <button type="button"
+                          onclick="abrirModalEditarCategoria('{{ cat.id }}', '{{ cat.nome|escapejs }}', '{{ cat.tipo }}', '{{ cat.disponivel_todas|yesno:'true,false' }}', [{% for u in cat.unidades.all %}'{{ u.id }}'{% if not forloop.last %},{% endif %}{% endfor %}])"
+                          class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition">
+                    ✏ Alterar
+                  </button>
+                  <form method="POST" action="{% url 'deletar_categoria' cat.id %}" onsubmit="return confirm('Deseja realmente excluir a categoria {{ cat.nome }}?')" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="px-2.5 py-1 bg-rose-950/40 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-semibold rounded-lg transition">
+                      Excluir
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="p-8 text-center text-slate-500">Nenhuma categoria cadastrada.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div id="modalEditarCategoria" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-950 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full mr-2"></span>Editar Categoria & Permissões</h3>
+        <button onclick="closeModal('modalEditarCategoria')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="formEditCategoria" method="POST" action="" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="md:col-span-2">
+            <label class="text-xs text-slate-400 font-semibold block mb-1">Nome da Categoria *</label>
+            <input type="text" name="nome" id="editNomeCategoria" required class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 font-semibold block mb-1">Tipo *</label>
+            <select name="tipo" id="editTipoCategoria" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+              <option value="OUT">Money OUT (Despesa)</option>
+              <option value="IN">Money IN (Receita)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Disponibilidade</span>
+            </div>
+            <label class="flex items-center space-x-2 bg-slate-950 border border-slate-700 px-3 py-1.5 rounded-lg cursor-pointer hover:border-amber-500 transition">
+              <input type="checkbox" name="disponivel_todas" id="editChkDisponivelTodas" onchange="toggleVisibilidadeUnidadesEdit(this)" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0 cursor-pointer">
+              <span class="text-xs font-bold text-amber-400">Disponível para TODAS</span>
+            </label>
+          </div>
+
+          <div id="editBoxUnidades" class="space-y-3 pt-2 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {% if coluna_uninter %}
+              <div class="bg-slate-950 border border-slate-800/80 p-3 rounded-xl space-y-2">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+                  <span class="text-xs font-bold uppercase text-sky-400">Unidades</span>
+                  <label class="text-[10px] text-slate-400 hover:text-white cursor-pointer select-none">
+                    <input type="checkbox" onchange="toggleGrupoCheckbox(this, 'chk-edit-uninter')" class="w-3 h-3 rounded text-sky-500 cursor-pointer"> Todas
+                  </label>
+                </div>
+                <div class="space-y-1 max-h-40 overflow-y-auto">
+                  {% for u in coluna_uninter %}
+                    <label class="flex items-center space-x-2 text-xs text-slate-300 hover:text-white cursor-pointer">
+                      <input type="checkbox" name="unidades_categoria" value="{{ u.id }}" class="chk-edit-uninter chk-edit-unidade w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-sky-500">
+                      <span>{{ u.nome }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modalEditarCategoria')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function toggleGrupoCheckbox(masterCheckbox, targetClass) {
+      document.querySelectorAll('.' + targetClass).forEach(cb => cb.checked = masterCheckbox.checked);
+    }
+
+    function toggleVisibilidadeUnidadesNova(chk) {
+      document.getElementById('boxUnidadesNova').classList.toggle('hidden', chk.checked);
+    }
+
+    function toggleVisibilidadeUnidadesEdit(chk) {
+      document.getElementById('editBoxUnidades').classList.toggle('hidden', chk.checked);
+    }
+
+    function abrirModalEditarCategoria(id, nome, tipo, disponivelTodas, unidadesIds) {
+      const form = document.getElementById('formEditCategoria');
+      form.action = '/categorias/editar/' + id + '/';
+
+      document.getElementById('editNomeCategoria').value = nome;
+      document.getElementById('editTipoCategoria').value = tipo;
+
+      const isTodas = (disponivelTodas === 'true' || disponivelTodas === true);
+      const chkTodas = document.getElementById('editChkDisponivelTodas');
+      chkTodas.checked = isTodas;
+      document.getElementById('editBoxUnidades').classList.toggle('hidden', isTodas);
+
+      document.querySelectorAll('.chk-edit-unidade').forEach(cb => {
+        cb.checked = unidadesIds.includes(cb.value);
+      });
+
+      openModal('modalEditarCategoria');
+    }
+  </script>
+</body>
+</html>
