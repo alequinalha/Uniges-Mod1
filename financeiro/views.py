@@ -1409,3 +1409,6 @@ def exportar_excel(request):
     response["Content-Disposition"] = f"attachment; filename=uniges_contas_{ano}_{mes:02d}.xlsx"
     wb.save(response)
     return response
+@login_required
+def tendencia_view(request):
+    return render(request, "financeiro/tendencia.html", {})
