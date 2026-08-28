@@ -19,4 +19,4 @@ COPY . .
 RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
-CMD ["sh", "-c", "python patch_db.py && python manage.py migrate --run-syncdb --noinput && python manage.py collectstatic --noinput && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
+CMD ["sh", "-c", "python manage.py migrate --run-syncdb --noinput && python manage.py collectstatic --noinput && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
